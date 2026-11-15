@@ -1,14 +1,16 @@
 # ULog Gate
 
-Check whether a PX4 flight log contains the evidence your test plan calls for, while there is still time to fix the recording setup or rerun the test.
+A PX4 log can open normally and still end before the part of the flight you need to review. ULog Gate checks a finished recording against your test requirements while there's still time to rerun the test. See the [PX4 report on logs ending early](https://discuss.px4.io/t/ulog-files-not-recording-for-entire-flight/48878).
 
 ULog Gate reads a local `.ulg` file and checks required uORB topic instances, sample counts, recorded spans, the largest gap between samples, and the time the logger explicitly marked as dropped. It produces a pass/fail result for a terminal or CI job. It runs on Python 3.10+ with no runtime dependencies, account, hardware, or network connection.
 
 ## Try it in a minute
 
-From the repository root:
+Clone the repo and generate three example logs:
 
 ```sh
+git clone https://github.com/prathampuglia/ulog-gate.git
+cd ulog-gate
 python3 examples/generate.py demo-logs
 python3 -m ulog_gate demo-logs/complete.ulg --policy examples/bench-policy.json
 python3 -m ulog_gate demo-logs/ended-early.ulg --policy examples/bench-policy.json
@@ -39,7 +41,7 @@ The three synthetic files model three different outcomes:
 }
 ```
 
-These numbers are illustrative. Each topic always requires at least one sample. `instance` defaults to 0 and `min_samples` to 1; the span, gap and dropout limits are optional. Time limits are integer milliseconds; the checker compares exact microseconds for timestamp-based rules. A gap limit requires at least two samples. Dropout markers are summed separately from observed gaps.
+Save the example as `test-policy.json` and adjust the limits for your recording. Each topic requires at least one sample. `instance` defaults to 0 and `min_samples` to 1. Span, gap and dropout limits are optional. Write time limits in whole milliseconds. The checker compares sample times at microsecond precision. A gap limit requires at least two samples. The checker totals logger dropout markers separately from gaps between samples.
 
 ```sh
 python3 -m ulog_gate flight.ulg --policy test-policy.json --json
@@ -51,6 +53,6 @@ Exit **0** means the log meets the policy. **1** means a policy limit was missed
 
 A pass covers the selected topics and limits. It does not establish that the whole flight was recorded, that sensor values are accurate, or that the vehicle is safe. A log cut at a frame boundary can still pass if the retained portion meets every threshold. The scanner skips unrelated payload contents and refuses encrypted logs, appended crash data, and unknown incompatible formats. It neither uploads logs nor writes to them.
 
-Run `python3 -m unittest discover -s tests -v` to reproduce the local test suite. [Verification notes](docs/verification.md) show how to compare against actual PX4 logs and an independent parser. The [research notes](docs/research.md) cover where this fits alongside Flight Review, PyULog, and related tools. See the [contribution plan](docs/contributing.md) for focused next changes.
+[Verification notes](docs/verification.md) show how to reproduce the checks against public PX4 logs and PyULog. If you hit a recording the checker handles incorrectly or have a real test it could support, see [Contributing](CONTRIBUTING.md).
 
 [MIT license](LICENSE).
