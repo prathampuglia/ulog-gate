@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "required_topics": [
+    {
+      "name": "bench_sensor",
+      "min_samples": 50,
+      "min_span_ms": 1000,
+      "max_gap_ms": 25
+    }
+  ],
+  "max_total_dropout_ms": 0
+}
